@@ -1,43 +1,49 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1 class="text-center mb-4">Resumen de Caja Semanal</h1>
-
-    <div class="card p-4 mb-4">
-        <h2 class="mb-3">Resumen de la Semana</h2>
+<div class="p-6 bg-gray-900 text-white min-h-screen">
+    <h1 class="text-3xl font-bold text-center mb-8">Sistema - Servicell</h1>
+    
+    <div class="bg-gray-800 p-6 rounded-lg shadow-lg mb-8">
+        <h2 class="text-2xl font-semibold mb-4">Resumen de la Semana</h2>
         <p><strong>Fecha de inicio:</strong> {{ inicio_semana }}</p>
         <p><strong>Fecha de fin:</strong> {{ fin_semana }}</p>
     </div>
 
-    <div class="card p-4 mb-4">
-        <h2 class="mb-3">Totales por Método de Pago</h2>
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Método de Pago</th>
-                    <th>Total Ventas</th>
-                    <th>Total Egresos</th>
-                    <th>Total Neto</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for tipo, total in totales.items() %}
-                <tr>
-                    <td>{{ tipo | capitalize }}</td>
-                    <td>${{ ventas.get(tipo, 0) }}</td>
-                    <td>${{ egresos.get(tipo, 0) }}</td>
-                    <td>${{ total }}</td>
-                </tr>
-                {% endfor %}
-                <tr>
-                    <td><strong>Total General</strong></td>
-                    <td></td>
-                    <td></td>
-                    <td><strong>${{ total_general }}</strong></td>
-                </tr>
-            </tbody>
-        </table>
+    <div class="bg-gray-800 p-6 rounded-lg shadow-lg mb-8">
+        <h2 class="text-2xl font-semibold mb-4">Totales por Método de Pago</h2>
+        <div class="overflow-x-auto">
+            <table class="min-w-full bg-gray-700 rounded-lg">
+                <thead>
+                    <tr class="bg-gray-600">
+                        <th class="px-4 py-2 text-left">Método de Pago</th>
+                        <th class="px-4 py-2 text-left">Total Ventas</th>
+                        <th class="px-4 py-2 text-left">Total Egresos</th>
+                        <th class="px-4 py-2 text-left">Total Neto</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tipo in tipos_pago %}
+                    <tr class="border-b border-gray-600 hover:bg-gray-650 transition duration-200">
+                        <td class="px-4 py-2">{{ tipo | capitalize }}</td>
+                        <td class="px-4 py-2">${{ ventas.get(tipo, 0) }}</td>
+                        <td class="px-4 py-2">${{ egresos.get(tipo, 0) }}</td>
+                        <td class="px-4 py-2">${{ ventas.get(tipo, 0) - egresos.get(tipo, 0) }}</td>
+                    </tr>
+                    {% endfor %}
+                    <tr class="bg-gray-600">
+                        <td class="px-4 py-2"><strong>Total General</strong></td>
+                        <td></td>
+                        <td></td>
+                        <td class="px-4 py-2"><strong>${{ total_general }}</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 
-    <a href="{{ url_for('index') }}" class="btn btn-secondary mt-3">Volver al Inicio</a>
+    <div class="mt-8 text-center">
+        <a href="{{ url_for('index') }}" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition duration-300">Volver al Inicio</a>
+    </div>
+</div>
 {% endblock %}

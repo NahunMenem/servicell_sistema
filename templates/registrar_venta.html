@@ -1,36 +1,38 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1 class="text-center mb-4">Registrar Venta</h1>
+<div class="p-6 bg-gray-900 text-white min-h-screen">
+    <h1 class="text-3xl font-bold text-center mb-8">Registrar Venta</h1>
 
-    <div class="row">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <!-- Columna izquierda: Buscar y agregar productos -->
-        <div class="col-md-6">
-            <div class="card p-4 mb-4">
-                <h2 class="mb-3">Buscar y Agregar Productos</h2>
+        <div>
+            <!-- Buscar productos -->
+            <div class="bg-gray-800 p-6 rounded-lg shadow-lg mb-6">
+                <h2 class="text-2xl font-semibold mb-4">Buscar y Agregar Productos</h2>
                 <form method="POST">
-                    <div class="mb-3">
-                        <label for="busqueda" class="form-label">Código de Barras o Nombre:</label>
-                        <input type="text" class="form-control" id="busqueda" name="busqueda" required>
+                    <div class="mb-4">
+                        <label for="busqueda" class="block text-gray-300 mb-2">Código de Barras o Nombre:</label>
+                        <input type="text" id="busqueda" name="busqueda" class="w-full p-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500" required>
                     </div>
-                    <button type="submit" name="buscar" class="btn btn-primary">Buscar</button>
+                    <button type="submit" name="buscar" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition duration-300">Buscar</button>
                 </form>
 
                 {% if productos %}
-                <hr>
-                <h3 class="mb-3">Resultados de la Búsqueda</h3>
-                <ul class="list-group">
+                <hr class="border-gray-600 my-4">
+                <h3 class="text-xl font-semibold mb-4">Resultados de la Búsqueda</h3>
+                <ul class="space-y-4">
                     {% for producto in productos %}
-                    <li class="list-group-item">
-                        <strong>{{ producto.nombre }}</strong><br>
-                        Código: {{ producto.codigo_barras }}<br>
-                        Stock: {{ producto.stock }}<br>
-                        Precio: ${{ producto.precio }}
+                    <li class="bg-gray-700 p-4 rounded-lg">
+                        <strong class="text-lg">{{ producto.nombre }}</strong><br>
+                        <span class="text-gray-300">Código: {{ producto.codigo_barras }}</span><br>
+                        <span class="text-gray-300">Stock: {{ producto.stock }}</span><br>
+                        <span class="text-gray-300">Precio: ${{ producto.precio }}</span>
                         <form method="POST" class="mt-2">
                             <input type="hidden" name="producto_id" value="{{ producto.id }}">
-                            <div class="input-group">
-                                <input type="number" class="form-control" name="cantidad" min="1" max="{{ producto.stock }}" required>
-                                <button type="submit" name="agregar" class="btn btn-success">Agregar</button>
+                            <div class="flex items-center space-x-2">
+                                <input type="number" name="cantidad" class="w-20 p-2 bg-gray-600 border border-gray-500 rounded-lg text-white focus:outline-none focus:border-blue-500" min="1" max="{{ producto.stock }}" required>
+                                <button type="submit" name="agregar" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition duration-300">Agregar</button>
                             </div>
                         </form>
                     </li>
@@ -40,89 +42,95 @@
             </div>
 
             <!-- Formulario para venta manual -->
-            <div class="card p-4 mb-4">
-                <h2 class="mb-3">Venta Manual</h2>
+            <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                <h2 class="text-2xl font-semibold mb-4">Servicio Técnico</h2>
                 <form method="POST">
-                    <div class="mb-3">
-                        <label for="nombre_manual" class="form-label">Nombre del Producto/Servicio:</label>
-                        <input type="text" class="form-control" id="nombre_manual" name="nombre_manual" required>
+                    <div class="mb-4">
+                        <label for="nombre_manual" class="block text-gray-300 mb-2">Nombre del Producto/Servicio:</label>
+                        <input type="text" id="nombre_manual" name="nombre_manual" class="w-full p-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500" required>
                     </div>
-                    <div class="mb-3">
-                        <label for="precio_manual" class="form-label">Precio:</label>
-                        <input type="number" step="0.01" class="form-control" id="precio_manual" name="precio_manual" required>
+                    <div class="mb-4">
+                        <label for="precio_manual" class="block text-gray-300 mb-2">Precio:</label>
+                        <input type="number" step="0.01" id="precio_manual" name="precio_manual" class="w-full p-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500" required>
                     </div>
-                    <div class="mb-3">
-                        <label for="cantidad_manual" class="form-label">Cantidad:</label>
-                        <input type="number" class="form-control" id="cantidad_manual" name="cantidad_manual" required>
+                    <div class="mb-4">
+                        <label for="cantidad_manual" class="block text-gray-300 mb-2">Cantidad:</label>
+                        <input type="number" id="cantidad_manual" name="cantidad_manual" class="w-full p-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500" required>
                     </div>
-                    <button type="submit" name="agregar_manual" class="btn btn-warning">Agregar Venta Manual</button>
+                    <button type="submit" name="agregar_manual" class="px-6 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition duration-300">Agregar Venta Manual</button>
                 </form>
             </div>
         </div>
 
         <!-- Columna derecha: Carrito de compras -->
-        <div class="col-md-6">
-            <div class="card p-4">
-                <h2 class="mb-3">Carrito de Compras</h2>
+        <div>
+            <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                <h2 class="text-2xl font-semibold mb-4">Carrito de Compras</h2>
                 {% if carrito %}
-                <table class="table table-striped">
+                <table class="w-full bg-gray-700 rounded-lg">
                     <thead>
-                        <tr>
-                            <th>Producto/Servicio</th>
-                            <th>Cantidad</th>
-                            <th>Precio Unitario</th>
-                            <th>Subtotal</th>
+                        <tr class="bg-gray-600">
+                            <th class="px-4 py-2 text-left">Producto/Servicio</th>
+                            <th class="px-4 py-2 text-left">Cantidad</th>
+                            <th class="px-4 py-2 text-left">Precio Unitario</th>
+                            <th class="px-4 py-2 text-left">Subtotal</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for item in carrito %}
-                        <tr>
-                            <td>{{ item.nombre }}</td>
-                            <td>{{ item.cantidad }}</td>
-                            <td>${{ item.precio }}</td>
-                            <td>${{ item.precio * item.cantidad }}</td>
+                        <tr class="border-b border-gray-600 hover:bg-gray-650 transition duration-200">
+                            <td class="px-4 py-2">{{ item.nombre }}</td>
+                            <td class="px-4 py-2">{{ item.cantidad }}</td>
+                            <td class="px-4 py-2">${{ item.precio }}</td>
+                            <td class="px-4 py-2">${{ item.precio * item.cantidad }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
-                <h4 class="text-end">Total: ${{ total }}</h4>
+                <h4 class="text-right mt-4 text-xl font-semibold">Total: ${{ total }}</h4>
 
                 <!-- Formulario para registrar la venta -->
-                <form method="POST">
-                    <div class="mb-3">
-                        <label for="tipo_pago" class="form-label">Tipo de Pago:</label>
-                        <div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="tipo_pago" id="efectivo" value="Efectivo" required>
-                                <label class="form-check-label" for="efectivo">Efectivo</label>
-                            </div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="tipo_pago" id="debito" value="Débito">
-                                <label class="form-check-label" for="debito">Débito</label>
-                            </div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="tipo_pago" id="credito" value="Crédito">
-                                <label class="form-check-label" for="credito">Crédito</label>
-                            </div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="tipo_pago" id="transferencia" value="Transferencia">
-                                <label class="form-check-label" for="transferencia">Transferencia</label>
-                            </div>
+                <form method="POST" class="mt-6">
+                    <div class="mb-4">
+                        <label class="block text-gray-300 mb-2">Tipo de Pago:</label>
+                        <div class="flex space-x-4">
+                            <label class="flex items-center">
+                                <input type="radio" name="tipo_pago" value="Efectivo" class="form-radio h-4 w-4 text-blue-600" required>
+                                <span class="ml-2 text-gray-300">Efectivo</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="tipo_pago" value="Débito" class="form-radio h-4 w-4 text-blue-600">
+                                <span class="ml-2 text-gray-300">Débito</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="tipo_pago" value="Crédito" class="form-radio h-4 w-4 text-blue-600">
+                                <span class="ml-2 text-gray-300">Crédito</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="tipo_pago" value="Transferencia" class="form-radio h-4 w-4 text-blue-600">
+                                <span class="ml-2 text-gray-300">Transferencia</span>
+                            </label>
                         </div>
                     </div>
-                    <div class="mb-3">
-                        <label for="dni_cliente" class="form-label">DNI del Cliente:</label>
-                        <input type="text" class="form-control" id="dni_cliente" name="dni_cliente">
+                    <div class="mb-4">
+                        <label for="dni_cliente" class="block text-gray-300 mb-2">DNI del Cliente:</label>
+                        <input type="text" id="dni_cliente" name="dni_cliente" class="w-full p-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500">
                     </div>
-                    <button type="submit" name="registrar" class="btn btn-primary">Registrar Venta</button>
-                    <button type="submit" name="vaciar" class="btn btn-danger">Vaciar Carrito</button>
+                    <div class="flex space-x-4">
+                        <button type="submit" name="registrar" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition duration-300">Registrar Venta</button>
+                        <button type="submit" name="vaciar" class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition duration-300">Vaciar Carrito</button>
+                    </div>
                 </form>
                 {% else %}
-                <p class="text-center">El carrito está vacío.</p>
+                <p class="text-center text-gray-300">El carrito está vacío.</p>
                 {% endif %}
             </div>
         </div>
     </div>
 
-    <a href="{{ url_for('index') }}" class="btn btn-secondary mt-3">Volver al Inicio</a>
+    <!-- Botón para volver al inicio -->
+    <div class="mt-8 text-center">
+        <a href="{{ url_for('index') }}" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition duration-300">Volver al Inicio</a>
+    </div>
+</div>
 {% endblock %}
