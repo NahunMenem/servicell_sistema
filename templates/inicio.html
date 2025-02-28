@@ -1,21 +1,22 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <div class="flex">
-
-
+    <div class="flex flex-col md:flex-row">
         <!-- Contenido principal -->
-        <div class="flex-1 p-8">
+        <div class="flex-1 p-4 md:p-8">
             <h1 class="text-2xl font-bold mb-6">Bienvenido, {{ session.get('username')|upper }}</h1>
             <p class="text-gray-300">Selecciona una opción del menú para comenzar.</p>
         </div>
     </div>
-    <div class="text-center">
-        <div style="display: flex; justify-content: center;">
-            <img src="{{ url_for('static', filename='images/logo1.png') }}" alt="Logo Servicell" class="img-fluid mb-4" style="max-width: 1000px; display: block; margin: 0 auto;">
+
+    <!-- Imagen centrada -->
+    <div class="text-center mt-8">
+        <div class="flex justify-center">
+            <img src="{{ url_for('static', filename='images/logo1.png') }}" alt="Logo Servicell" class="img-fluid mb-4" style="max-width: 100%; height: auto;">
         </div>
 
-        <div id="fecha" class="mb-3" style="font-size: 1.5rem;"></div>
+        <!-- Fecha actual -->
+        <div id="fecha" class="mb-3 text-lg md:text-xl"></div>
     </div>
 
     <script>
@@ -25,4 +26,4 @@
         const fechaActual = new Date().toLocaleDateString('es-ES', opcionesFecha);
         fechaElemento.textContent = fechaActual;
     </script>
-    {% endblock %}
+{% endblock %}

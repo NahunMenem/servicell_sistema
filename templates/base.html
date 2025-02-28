@@ -6,15 +6,11 @@
     <title>Sistema - Servicell</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
-    <!-- jQuery (requerido por Bootstrap 4) -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <!-- Popper.js (requerido para los componentes interactivos de Bootstrap) -->
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
-    <!-- Bootstrap JavaScript -->
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Estilos personalizados para el modo oscuro */
         body {
             background-color: #121212;
             color: #ffffff;
@@ -49,9 +45,52 @@
             height: auto;
             display: block;
         }
+
+        /* Estilos para el botón de toggle en móviles */
+        #sidebarToggle {
+            display: none; /* Oculto por defecto */
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 1000;
+            background-color: #1e1e1e;
+            border: 1px solid #333333;
+            color: #ffffff;
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            #sidebarToggle {
+                display: block; /* Mostrar solo en móviles */
+            }
+
+            #sidebar-wrapper {
+                position: fixed;
+                top: 0;
+                left: -250px; /* Ocultar el sidebar por defecto */
+                height: 100vh;
+                width: 250px;
+                transition: left 0.3s ease;
+                z-index: 999;
+            }
+
+            #sidebar-wrapper.active {
+                left: 0; /* Mostrar el sidebar */
+            }
+
+            .container-fluid {
+                margin-left: 0 !important; /* Ajustar el contenido principal */
+            }
+        }
     </style>
 </head>
 <body>
+    <!-- Botón para mostrar/ocultar el sidebar en móviles -->
+    <button id="sidebarToggle">
+        <i class="fas fa-bars"></i> Menú
+    </button>
+
     <div class="d-flex" id="wrapper">
         <!-- Sidebar -->
         <div class="bg-light border-right" id="sidebar-wrapper">
@@ -86,7 +125,6 @@
                 <a href="{{ url_for('reparaciones') }}" class="list-group-item list-group-item-action">
                     <i class="fas fa-tools me-2"></i> Reparaciones
                 </a>
-                <!-- Nueva opción para Mercadería Fallada -->
                 <a href="{{ url_for('mercaderia_fallada') }}" class="list-group-item list-group-item-action">
                     <i class="fas fa-times-circle me-2"></i> Mercadería Fallada
                 </a>
@@ -105,8 +143,12 @@
     </div>
     <!-- /#wrapper -->
 
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        // JavaScript para manejar el sidebar en móviles
+        document.getElementById('sidebarToggle').addEventListener('click', function() {
+            const sidebar = document.getElementById('sidebar-wrapper');
+            sidebar.classList.toggle('active');
+        });
+    </script>
 </body>
 </html>
