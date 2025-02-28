@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1 class="text-center mb-4">Productos por Agotarse</h1>
+
+    <div class="card p-4">
+        <h2 class="mb-3">Productos con Stock ≤ 2</h2>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Código de Barras</th>
+                    <th>Stock</th>
+                    <th>Precio de Venta</th>
+                    <th>Precio de Costo</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for producto in productos %}
+                <tr>
+                    <td>{{ producto.id }}</td>
+                    <td>{{ producto.nombre }}</td>
+                    <td>{{ producto.codigo_barras }}</td>
+                    <td>{{ producto.stock }}</td>
+                    <td>${{ producto.precio }}</td>
+                    <td>${{ producto.precio_costo }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <a href="{{ url_for('index') }}" class="btn btn-secondary mt-3">Volver al Inicio</a>
+{% endblock %}

@@ -1,0 +1,12 @@
+<!-- Resumen de Equipos por Técnico -->
+<div class="bg-gray-800 shadow-md rounded px-8 pt-6 pb-8 mb-4">
+    <h2 class="text-xl font-bold text-center mb-6 text-white">Equipos por Técnico</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {% for tecnico, cantidad in equipos_por_tecnico.items() %}
+            <div class="bg-gray-700 p-4 rounded-lg">
+                <h3 class="text-lg font-bold text-white">{{ tecnico }}</h3>
+                <p class="text-gray-300">Equipos asignados: {{ cantidad }}</p>
+            </div>
+        {% endfor %}
+    </div>
+</div>

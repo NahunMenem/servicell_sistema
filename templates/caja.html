@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1 class="text-center mb-4">Resumen de Caja Semanal</h1>
+
+    <div class="card p-4 mb-4">
+        <h2 class="mb-3">Resumen de la Semana</h2>
+        <p><strong>Fecha de inicio:</strong> {{ inicio_semana }}</p>
+        <p><strong>Fecha de fin:</strong> {{ fin_semana }}</p>
+    </div>
+
+    <div class="card p-4 mb-4">
+        <h2 class="mb-3">Totales por Método de Pago</h2>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Método de Pago</th>
+                    <th>Total Ventas</th>
+                    <th>Total Egresos</th>
+                    <th>Total Neto</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tipo, total in totales.items() %}
+                <tr>
+                    <td>{{ tipo | capitalize }}</td>
+                    <td>${{ ventas.get(tipo, 0) }}</td>
+                    <td>${{ egresos.get(tipo, 0) }}</td>
+                    <td>${{ total }}</td>
+                </tr>
+                {% endfor %}
+                <tr>
+                    <td><strong>Total General</strong></td>
+                    <td></td>
+                    <td></td>
+                    <td><strong>${{ total_general }}</strong></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <a href="{{ url_for('index') }}" class="btn btn-secondary mt-3">Volver al Inicio</a>
+{% endblock %}

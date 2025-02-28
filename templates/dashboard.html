@@ -1,0 +1,92 @@
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% extends "base.html" %}
+
+{% block content %}
+    <h1 class="text-center mb-4">Dashboard</h1>
+
+    <div class="card p-4 mb-4">
+        <h2 class="mb-3">Resumen de la Semana</h2>
+        <p><strong>Fecha de inicio:</strong> {{ inicio_semana }}</p>
+        <p><strong>Fecha de fin:</strong> {{ fin_semana }}</p>
+    </div>
+
+    <div class="card p-4 mb-4">
+        <h2 class="mb-3">Ganancia de la Semana</h2>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Concepto</th>
+                    <th>Monto</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Total de Ventas</td>
+                    <td>${{ total_ventas }}</td>
+                </tr>
+                <tr>
+                    <td>Total de Egresos</td>
+                    <td>-${{ total_egresos }}</td>
+                </tr>
+                <tr>
+                    <td>Costo de Productos Vendidos</td>
+                    <td>-${{ total_costo }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Ganancia Neta</strong></td>
+                    <td><strong>${{ ganancia_semana }}</strong></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card p-4 mb-4">
+        <h2 class="mb-3">Gráfico de Resumen Semanal</h2>
+        <canvas id="resumenSemanalChart"></canvas>
+    </div>
+
+    <a href="{{ url_for('index') }}" class="btn btn-secondary mt-3">Volver al Inicio</a>
+
+    <script>
+        // Datos para el gráfico
+        const data = {
+            labels: ['Ventas', 'Egresos', 'Costos', 'Ganancia Neta'],
+            datasets: [{
+                label: 'Resumen Semanal',
+                data: [{{ total_ventas }}, {{ total_egresos }}, {{ total_costo }}, {{ ganancia_semana }}],
+                backgroundColor: [
+                    'rgba(75, 192, 192, 0.2)',
+                    'rgba(255, 99, 132, 0.2)',
+                    'rgba(255, 206, 86, 0.2)',
+                    'rgba(153, 102, 255, 0.2)'
+                ],
+                borderColor: [
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(153, 102, 255, 1)'
+                ],
+                borderWidth: 1
+            }]
+        };
+
+        // Configuración del gráfico
+        const config = {
+            type: 'bar',
+            data: data,
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        };
+
+        // Renderizar el gráfico
+        const resumenSemanalChart = new Chart(
+            document.getElementById('resumenSemanalChart'),
+            config
+        );
+    </script>
+{% endblock %} 

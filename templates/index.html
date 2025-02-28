@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1 class="text-center mb-4">Sistema - Servicell</h1>
+    <div class="list-group">
+        <!-- Agregar Stock -->
+        <a href="{{ url_for('agregar_stock') }}" class="list-group-item list-group-item-action">
+            <i class="fas fa-boxes me-2"></i> Agregar Stock
+        </a>
+
+        <!-- Registrar Venta -->
+        <a href="{{ url_for('registrar_venta') }}" class="list-group-item list-group-item-action">
+            <i class="fas fa-cash-register me-2"></i> Registrar Venta
+        </a>
+
+        <!-- Últimas Transacciones del Día -->
+        <a href="{{ url_for('ultimas_ventas') }}" class="list-group-item list-group-item-action">
+            <i class="fas fa-history me-2"></i> Últimas Transacciones del Día
+        </a>
+
+        <!-- Gestionar Egresos -->
+        <a href="{{ url_for('egresos') }}" class="list-group-item list-group-item-action">
+            <i class="fas fa-money-bill-wave me-2"></i> Gestionar Egresos
+        </a>
+
+        <!-- Dashboard -->
+        <a href="{{ url_for('dashboard') }}" class="list-group-item list-group-item-action">
+            <i class="fas fa-chart-line me-2"></i> Dashboard
+        </a>
+
+        <!-- Productos por Agotarse -->
+        <a href="{{ url_for('productos_por_agotarse') }}" class="list-group-item list-group-item-action">
+            <i class="fas fa-exclamation-triangle me-2"></i> Productos por Agotarse
+        </a>
+
+        <!-- Caja -->
+        <a href="{{ url_for('caja') }}" class="list-group-item list-group-item-action">
+            <i class="fas fa-calculator me-2"></i> Caja
+        </a>
+    </div>
+{% endblock %}

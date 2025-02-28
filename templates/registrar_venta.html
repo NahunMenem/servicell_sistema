@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1 class="text-center mb-4">Registrar Venta</h1>
+
+    <div class="row">
+        <!-- Columna izquierda: Buscar y agregar productos -->
+        <div class="col-md-6">
+            <div class="card p-4 mb-4">
+                <h2 class="mb-3">Buscar y Agregar Productos</h2>
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="busqueda" class="form-label">Código de Barras o Nombre:</label>
+                        <input type="text" class="form-control" id="busqueda" name="busqueda" required>
+                    </div>
+                    <button type="submit" name="buscar" class="btn btn-primary">Buscar</button>
+                </form>
+
+                {% if productos %}
+                <hr>
+                <h3 class="mb-3">Resultados de la Búsqueda</h3>
+                <ul class="list-group">
+                    {% for producto in productos %}
+                    <li class="list-group-item">
+                        <strong>{{ producto.nombre }}</strong><br>
+                        Código: {{ producto.codigo_barras }}<br>
+                        Stock: {{ producto.stock }}<br>
+                        Precio: ${{ producto.precio }}
+                        <form method="POST" class="mt-2">
+                            <input type="hidden" name="producto_id" value="{{ producto.id }}">
+                            <div class="input-group">
+                                <input type="number" class="form-control" name="cantidad" min="1" max="{{ producto.stock }}" required>
+                                <button type="submit" name="agregar" class="btn btn-success">Agregar</button>
+                            </div>
+                        </form>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+
+            <!-- Formulario para venta manual -->
+            <div class="card p-4 mb-4">
+                <h2 class="mb-3">Venta Manual</h2>
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="nombre_manual" class="form-label">Nombre del Producto/Servicio:</label>
+                        <input type="text" class="form-control" id="nombre_manual" name="nombre_manual" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="precio_manual" class="form-label">Precio:</label>
+                        <input type="number" step="0.01" class="form-control" id="precio_manual" name="precio_manual" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="cantidad_manual" class="form-label">Cantidad:</label>
+                        <input type="number" class="form-control" id="cantidad_manual" name="cantidad_manual" required>
+                    </div>
+                    <button type="submit" name="agregar_manual" class="btn btn-warning">Agregar Venta Manual</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Columna derecha: Carrito de compras -->
+        <div class="col-md-6">
+            <div class="card p-4">
+                <h2 class="mb-3">Carrito de Compras</h2>
+                {% if carrito %}
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Producto/Servicio</th>
+                            <th>Cantidad</th>
+                            <th>Precio Unitario</th>
+                            <th>Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in carrito %}
+                        <tr>
+                            <td>{{ item.nombre }}</td>
+                            <td>{{ item.cantidad }}</td>
+                            <td>${{ item.precio }}</td>
+                            <td>${{ item.precio * item.cantidad }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <h4 class="text-end">Total: ${{ total }}</h4>
+
+                <!-- Formulario para registrar la venta -->
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="tipo_pago" class="form-label">Tipo de Pago:</label>
+                        <div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="tipo_pago" id="efectivo" value="Efectivo" required>
+                                <label class="form-check-label" for="efectivo">Efectivo</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="tipo_pago" id="debito" value="Débito">
+                                <label class="form-check-label" for="debito">Débito</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="tipo_pago" id="credito" value="Crédito">
+                                <label class="form-check-label" for="credito">Crédito</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="tipo_pago" id="transferencia" value="Transferencia">
+                                <label class="form-check-label" for="transferencia">Transferencia</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="dni_cliente" class="form-label">DNI del Cliente:</label>
+                        <input type="text" class="form-control" id="dni_cliente" name="dni_cliente">
+                    </div>
+                    <button type="submit" name="registrar" class="btn btn-primary">Registrar Venta</button>
+                    <button type="submit" name="vaciar" class="btn btn-danger">Vaciar Carrito</button>
+                </form>
+                {% else %}
+                <p class="text-center">El carrito está vacío.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <a href="{{ url_for('index') }}" class="btn btn-secondary mt-3">Volver al Inicio</a>
+{% endblock %}

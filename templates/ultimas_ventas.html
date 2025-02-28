@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1 class="text-center mb-4">Últimas Transacciones del Día</h1>
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Tipo</th>
+                <th>Producto/Servicio</th>
+                <th>Cantidad</th>
+                <th>Precio Unitario</th>
+                <th>Subtotal</th>
+                <th>Fecha</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for transaccion in transacciones %}
+            <tr>
+                <td>
+                    {% if 'nombre_servicio' in transaccion %}
+                        Reparación
+                    {% else %}
+                        Venta
+                    {% endif %}
+                </td>
+                <td>{{ transaccion.nombre }}</td>
+                <td>{{ transaccion.cantidad }}</td>
+                <td>${{ transaccion.precio }}</td>
+                <td>${{ transaccion.precio * transaccion.cantidad }}</td>
+                <td>{{ transaccion.fecha }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">Volver al Inicio</a>
+{% endblock %}
