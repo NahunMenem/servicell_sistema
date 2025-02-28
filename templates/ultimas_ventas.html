@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="p-6 bg-gray-900 text-white min-h-screen">
+    <h1 class="text-3xl font-bold text-center mb-8">Últimas Transacciones del Día</h1>
+
+    <!-- Tabla de transacciones -->
+    <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+        <div class="overflow-x-auto">
+            <table class="min-w-full bg-gray-700 rounded-lg">
+                <thead>
+                    <tr class="bg-gray-600">
+                        <th class="px-4 py-2 text-left">Tipo</th>
+                        <th class="px-4 py-2 text-left">Producto/Servicio</th>
+                        <th class="px-4 py-2 text-left">Cantidad</th>
+                        <th class="px-4 py-2 text-left">Precio Unitario</th>
+                        <th class="px-4 py-2 text-left">Subtotal</th>
+                        <th class="px-4 py-2 text-left">Fecha</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for transaccion in transacciones %}
+                    <tr class="border-b border-gray-600 hover:bg-gray-650 transition duration-200">
+                        <td class="px-4 py-2">
+                            {% if 'nombre_servicio' in transaccion %}
+                                Reparación
+                            {% else %}
+                                Venta
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-2">{{ transaccion.nombre }}</td>
+                        <td class="px-4 py-2">{{ transaccion.cantidad }}</td>
+                        <td class="px-4 py-2">${{ transaccion.precio }}</td>
+                        <td class="px-4 py-2">${{ transaccion.precio * transaccion.cantidad }}</td>
+                        <td class="px-4 py-2">{{ transaccion.fecha }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Botón para volver al inicio -->
+    <div class="mt-8 text-center">
+        <a href="{{ url_for('index') }}" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition duration-300">Volver al Inicio</a>
+    </div>
+</div>
+{% endblock %}

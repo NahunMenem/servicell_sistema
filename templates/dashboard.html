@@ -1,0 +1,241 @@
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% extends "base.html" %}
+
+{% block content %}
+<div class="p-6 bg-gray-900 text-white min-h-screen">
+    <h1 class="text-3xl font-bold text-center mb-8">Dashboard</h1>
+
+    <!-- Selector de fecha -->
+    <div class="mb-8 text-center">
+        <form action="{{ url_for('dashboard') }}" method="GET" class="inline-block">
+            <label for="fecha" class="text-gray-300">Selecciona una fecha:</label>
+            <input type="date" id="fecha" name="fecha" value="{{ fecha_seleccionada }}" class="ml-2 p-2 bg-gray-700 text-white rounded">
+            <button type="submit" class="ml-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition duration-300">Actualizar</button>
+        </form>
+    </div>
+
+    <!-- Resumen de la semana -->
+    <div class="bg-gray-800 p-6 rounded-lg shadow-lg mb-8">
+        <h2 class="text-2xl font-semibold mb-4">Resumen de la Semana</h2>
+        <p class="text-gray-300"><strong>Fecha de inicio:</strong> {{ inicio_semana }}</p>
+        <p class="text-gray-300"><strong>Fecha de fin:</strong> {{ fin_semana }}</p>
+    </div>
+
+    <!-- Resumen del día -->
+    <div class="bg-gray-800 p-6 rounded-lg shadow-lg mb-8">
+        <h2 class="text-2xl font-semibold mb-4">Resumen del Día</h2>
+        <p class="text-gray-300"><strong>Fecha seleccionada:</strong> {{ fecha_seleccionada }}</p>
+    </div>
+
+    <!-- Contenedor para las tablas y gráficos -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Tabla de ganancias semanales -->
+        <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+            <h2 class="text-2xl font-semibold mb-4">Ganancia de la Semana</h2>
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="border-b border-gray-700">
+                        <th class="py-2 text-gray-300">Concepto</th>
+                        <th class="py-2 text-gray-300">Monto</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="border-b border-gray-700">
+                        <td class="py-3">Total de Ventas</td>
+                        <td class="py-3">${{ total_ventas }}</td>
+                    </tr>
+                    <tr class="border-b border-gray-700">
+                        <td class="py-3">Total de Egresos</td>
+                        <td class="py-3">-${{ total_egresos }}</td>
+                    </tr>
+                    <tr class="border-b border-gray-700">
+                        <td class="py-3">Costo de Productos Vendidos</td>
+                        <td class="py-3">-${{ total_costo }}</td>
+                    </tr>
+                    <tr>
+                        <td class="py-3 font-semibold">Ganancia Neta</td>
+                        <td class="py-3 font-semibold">${{ ganancia_semana }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Tabla de ganancias diarias -->
+        <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+            <h2 class="text-2xl font-semibold mb-4">Ganancia del Día</h2>
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="border-b border-gray-700">
+                        <th class="py-2 text-gray-300">Concepto</th>
+                        <th class="py-2 text-gray-300">Monto</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="border-b border-gray-700">
+                        <td class="py-3">Total de Ventas</td>
+                        <td class="py-3">${{ total_ventas_dia }}</td>
+                    </tr>
+                    <tr class="border-b border-gray-700">
+                        <td class="py-3">Total de Egresos</td>
+                        <td class="py-3">-${{ total_egresos_dia }}</td>
+                    </tr>
+                    <tr class="border-b border-gray-700">
+                        <td class="py-3">Costo de Productos Vendidos</td>
+                        <td class="py-3">-${{ total_costo_dia }}</td>
+                    </tr>
+                    <tr>
+                        <td class="py-3 font-semibold">Ganancia Neta</td>
+                        <td class="py-3 font-semibold">${{ ganancia_dia }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Contenedor para los gráficos -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+        <!-- Gráfico de resumen semanal -->
+        <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+            <h2 class="text-2xl font-semibold mb-4">Gráfico de Resumen Semanal</h2>
+            <canvas id="resumenSemanalChart" class="w-full"></canvas>
+        </div>
+
+        <!-- Gráfico de resumen diario -->
+        <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+            <h2 class="text-2xl font-semibold mb-4">Gráfico de Resumen Diario</h2>
+            <canvas id="resumenDiarioChart" class="w-full"></canvas>
+        </div>
+    </div>
+
+    <!-- Botón para volver al inicio -->
+    <div class="mt-8 text-center">
+        <a href="{{ url_for('index') }}" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition duration-300">Volver al Inicio</a>
+    </div>
+
+    <script>
+        // Datos para el gráfico semanal
+        const dataSemanal = {
+            labels: ['Ventas', 'Egresos', 'Costos', 'Ganancia Neta'],
+            datasets: [{
+                label: 'Resumen Semanal',
+                data: [{{ total_ventas }}, {{ total_egresos }}, {{ total_costo }}, {{ ganancia_semana }}],
+                backgroundColor: [
+                    'rgba(75, 192, 192, 0.2)',
+                    'rgba(255, 99, 132, 0.2)',
+                    'rgba(255, 206, 86, 0.2)',
+                    'rgba(153, 102, 255, 0.2)'
+                ],
+                borderColor: [
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(153, 102, 255, 1)'
+                ],
+                borderWidth: 1
+            }]
+        };
+
+        // Configuración del gráfico semanal
+        const configSemanal = {
+            type: 'bar',
+            data: dataSemanal,
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)' // Color de la cuadrícula del eje Y
+                        },
+                        ticks: {
+                            color: 'white' // Color del texto del eje Y
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)' // Color de la cuadrícula del eje X
+                        },
+                        ticks: {
+                            color: 'white' // Color del texto del eje X
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: 'white' // Color del texto de la leyenda
+                        }
+                    }
+                }
+            }
+        };
+
+        // Renderizar el gráfico semanal
+        const resumenSemanalChart = new Chart(
+            document.getElementById('resumenSemanalChart'),
+            configSemanal
+        );
+
+        // Datos para el gráfico diario
+        const dataDiario = {
+            labels: ['Ventas', 'Egresos', 'Costos', 'Ganancia Neta'],
+            datasets: [{
+                label: 'Resumen Diario',
+                data: [{{ total_ventas_dia }}, {{ total_egresos_dia }}, {{ total_costo_dia }}, {{ ganancia_dia }}],
+                backgroundColor: [
+                    'rgba(75, 192, 192, 0.2)',
+                    'rgba(255, 99, 132, 0.2)',
+                    'rgba(255, 206, 86, 0.2)',
+                    'rgba(153, 102, 255, 0.2)'
+                ],
+                borderColor: [
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(153, 102, 255, 1)'
+                ],
+                borderWidth: 1
+            }]
+        };
+
+        // Configuración del gráfico diario
+        const configDiario = {
+            type: 'bar',
+            data: dataDiario,
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)' // Color de la cuadrícula del eje Y
+                        },
+                        ticks: {
+                            color: 'white' // Color del texto del eje Y
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)' // Color de la cuadrícula del eje X
+                        },
+                        ticks: {
+                            color: 'white' // Color del texto del eje X
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: 'white' // Color del texto de la leyenda
+                        }
+                    }
+                }
+            }
+        };
+
+        // Renderizar el gráfico diario
+        const resumenDiarioChart = new Chart(
+            document.getElementById('resumenDiarioChart'),
+            configDiario
+        );
+    </script>
+</div>
+{% endblock %}

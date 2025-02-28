@@ -1,0 +1,28 @@
+<!-- templates/resumen_semanal.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resumen Semanal</title>
+</head>
+<body>
+    <h1>Resumen Semanal por Método de Pago</h1>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Método de Pago</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for fila in resumen %}
+            <tr>
+                <td>{{ fila['tipo_pago'] }}</td>
+                <td>{{ fila['total'] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
