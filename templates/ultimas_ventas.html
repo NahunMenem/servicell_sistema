@@ -2,41 +2,113 @@
 
 {% block content %}
 <div class="p-6 bg-gray-900 text-white min-h-screen">
-    <h1 class="text-3xl font-bold text-center mb-8">Últimas Transacciones del Día</h1>
+    <h1 class="text-3xl font-bold text-center mb-8">Transacciones del Día ({{ fecha_actual }})</h1>
 
-    <!-- Tabla de transacciones -->
-    <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
-        <div class="overflow-x-auto">
-            <table class="min-w-full bg-gray-700 rounded-lg">
-                <thead>
-                    <tr class="bg-gray-600">
-                        <th class="px-4 py-2 text-left">Tipo</th>
-                        <th class="px-4 py-2 text-left">Producto/Servicio</th>
-                        <th class="px-4 py-2 text-left">Cantidad</th>
-                        <th class="px-4 py-2 text-left">Precio Unitario</th>
-                        <th class="px-4 py-2 text-left">Subtotal</th>
-                        <th class="px-4 py-2 text-left">Fecha</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for transaccion in transacciones %}
-                    <tr class="border-b border-gray-600 hover:bg-gray-650 transition duration-200">
-                        <td class="px-4 py-2">
-                            {% if 'nombre_servicio' in transaccion %}
-                                Reparación
-                            {% else %}
-                                Venta
-                            {% endif %}
-                        </td>
-                        <td class="px-4 py-2">{{ transaccion.nombre }}</td>
-                        <td class="px-4 py-2">{{ transaccion.cantidad }}</td>
-                        <td class="px-4 py-2">${{ transaccion.precio }}</td>
-                        <td class="px-4 py-2">${{ transaccion.precio * transaccion.cantidad }}</td>
-                        <td class="px-4 py-2">{{ transaccion.fecha }}</td>
-                    </tr>
+    <!-- Sección de Totales por Tipo de Pago -->
+    <div class="mb-8">
+        <h2 class="text-2xl font-semibold mb-4">Totales por Tipo de Pago</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Totales de Ventas -->
+            <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                <h3 class="text-xl font-semibold mb-4">Ventas</h3>
+                <ul>
+                    {% for tipo_pago, total in total_ventas_por_pago.items() %}
+                    <li class="mb-2">
+                        <span class="font-medium">{{ tipo_pago }}:</span> ${{ total }}
+                    </li>
+                    {% else %}
+                    <li>No hay ventas registradas hoy.</li>
                     {% endfor %}
-                </tbody>
-            </table>
+                </ul>
+            </div>
+
+            <!-- Totales de Reparaciones -->
+            <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                <h3 class="text-xl font-semibold mb-4">Reparaciones</h3>
+                <ul>
+                    {% for tipo_pago, total in total_reparaciones_por_pago.items() %}
+                    <li class="mb-2">
+                        <span class="font-medium">{{ tipo_pago }}:</span> ${{ total }}
+                    </li>
+                    {% else %}
+                    <li>No hay reparaciones registradas hoy.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sección de Ventas -->
+    <div class="mb-8">
+        <h2 class="text-2xl font-semibold mb-4">Ventas</h2>
+        <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-gray-700 rounded-lg">
+                    <thead>
+                        <tr class="bg-gray-600">
+                            <th class="px-4 py-2 text-left">Producto</th>
+                            <th class="px-4 py-2 text-left">Cantidad</th>
+                            <th class="px-4 py-2 text-left">Precio Unitario</th>
+                            <th class="px-4 py-2 text-left">Total</th>
+                            <th class="px-4 py-2 text-left">Fecha</th>
+                            <th class="px-4 py-2 text-left">Tipo de Pago</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for venta in ventas %}
+                        <tr class="border-b border-gray-600 hover:bg-gray-650 transition duration-200">
+                            <td class="px-4 py-2">{{ venta.nombre_producto }}</td>
+                            <td class="px-4 py-2">{{ venta.cantidad }}</td>
+                            <td class="px-4 py-2">${{ venta.precio_unitario }}</td>
+                            <td class="px-4 py-2">${{ venta.total }}</td>
+                            <td class="px-4 py-2">{{ venta.fecha }}</td>
+                            <td class="px-4 py-2">{{ venta.tipo_pago }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="px-4 py-2 text-center">No hay ventas registradas hoy.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sección de Reparaciones -->
+    <div>
+        <h2 class="text-2xl font-semibold mb-4">Reparaciones</h2>
+        <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-gray-700 rounded-lg">
+                    <thead>
+                        <tr class="bg-gray-600">
+                            <th class="px-4 py-2 text-left">Servicio</th>
+                            <th class="px-4 py-2 text-left">Cantidad</th>
+                            <th class="px-4 py-2 text-left">Precio Unitario</th>
+                            <th class="px-4 py-2 text-left">Total</th>
+                            <th class="px-4 py-2 text-left">Fecha</th>
+                            <th class="px-4 py-2 text-left">Tipo de Pago</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for reparacion in reparaciones %}
+                        <tr class="border-b border-gray-600 hover:bg-gray-650 transition duration-200">
+                            <td class="px-4 py-2">{{ reparacion.nombre_servicio }}</td>
+                            <td class="px-4 py-2">{{ reparacion.cantidad }}</td>
+                            <td class="px-4 py-2">${{ reparacion.precio_unitario }}</td>
+                            <td class="px-4 py-2">${{ reparacion.total }}</td>
+                            <td class="px-4 py-2">{{ reparacion.fecha }}</td>
+                            <td class="px-4 py-2">{{ reparacion.tipo_pago }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="px-4 py-2 text-center">No hay reparaciones registradas hoy.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 

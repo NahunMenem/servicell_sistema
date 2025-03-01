@@ -114,6 +114,10 @@
                 <a href="{{ url_for('dashboard') }}" class="list-group-item list-group-item-action">
                     <i class="fas fa-chart-line me-2"></i> Dashboard
                 </a>
+                <!-- Nueva ruta para Caja Semanal -->
+                <a href="{{ url_for('caja_semanal') }}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-calendar-week me-2"></i> Caja Semanal
+                </a>
                 {% endif %}
                 <a href="{{ url_for('productos_por_agotarse') }}" class="list-group-item list-group-item-action">
                     <i class="fas fa-exclamation-triangle me-2"></i> Productos por Agotarse

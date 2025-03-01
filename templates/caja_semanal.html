@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="p-6 bg-gray-900 text-white min-h-screen">
+    <h1 class="text-3xl font-bold text-center mb-8">Caja Semanal ({{ inicio_semana }} al {{ fin_semana }})</h1>
+
+    <!-- Selector de período -->
+    <div class="mb-8">
+        <form method="get" action="{{ url_for('caja_semanal') }}" class="flex justify-center gap-4">
+            <select name="periodo" class="bg-gray-800 text-white p-2 rounded-lg">
+                <option value="semana_actual" {% if periodo_seleccionado == 'semana_actual' %}selected{% endif %}>Semana Actual</option>
+                <option value="semana_pasada" {% if periodo_seleccionado == 'semana_pasada' %}selected{% endif %}>Semana Pasada</option>
+                <option value="mes_actual" {% if periodo_seleccionado == 'mes_actual' %}selected{% endif %}>Mes Actual</option>
+                <option value="mes_anterior" {% if periodo_seleccionado == 'mes_anterior' %}selected{% endif %}>Mes Anterior</option>
+            </select>
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">Seleccionar</button>
+        </form>
+    </div>
+
+    <!-- Sección de Totales por Tipo de Pago -->
+    <div class="mb-8">
+        <h2 class="text-2xl font-semibold mb-4">Totales por Tipo de Pago</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Totales de Ventas -->
+            <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                <h3 class="text-xl font-semibold mb-4">Ventas</h3>
+                <ul>
+                    {% for tipo_pago, total in total_ventas_por_pago.items() %}
+                    <li class="mb-2">
+                        <span class="font-medium">{{ tipo_pago }}:</span> ${{ total | round(2) }}
+                    </li>
+                    {% else %}
+                    <li>No hay ventas registradas en este período.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <!-- Totales de Reparaciones -->
+            <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                <h3 class="text-xl font-semibold mb-4">Reparaciones</h3>
+                <ul>
+                    {% for tipo_pago, total in total_reparaciones_por_pago.items() %}
+                    <li class="mb-2">
+                        <span class="font-medium">{{ tipo_pago }}:</span> ${{ total | round(2) }}
+                    </li>
+                    {% else %}
+                    <li>No hay reparaciones registradas en este período.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <!-- Totales Combinados -->
+            <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                <h3 class="text-xl font-semibold mb-4">Totales Combinados</h3>
+                <ul>
+                    {% for tipo_pago, total in total_combinado_por_pago.items() %}
+                    <li class="mb-2">
+                        <span class="font-medium">{{ tipo_pago }}:</span> ${{ total | round(2) }}
+                    </li>
+                    {% else %}
+                    <li>No hay transacciones registradas en este período.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sección de Egresos -->
+    <div class="mb-8">
+        <h2 class="text-2xl font-semibold mb-4">Egresos</h2>
+        <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Totales de Egresos por Tipo de Pago -->
+                <div>
+                    <h3 class="text-xl font-semibold mb-4">Totales de Egresos</h3>
+                    <ul>
+                        {% for tipo_pago, total in total_egresos_por_pago.items() %}
+                        <li class="mb-2">
+                            <span class="font-medium">{{ tipo_pago }}:</span> ${{ total | round(2) }}
+                        </li>
+                        {% else %}
+                        <li>No hay egresos registrados en este período.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <!-- Lista de Egresos -->
+                <div>
+                    <h3 class="text-xl font-semibold mb-4">Detalle de Egresos</h3>
+                    <ul>
+                        {% for egreso in egresos %}
+                        <li class="mb-2">
+                            <span class="font-medium">{{ egreso.descripcion }}:</span> ${{ egreso.monto | round(2) }} ({{ egreso.tipo_pago }})
+                        </li>
+                        {% else %}
+                        <li>No hay egresos registrados en este período.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sección de Neto por Tipo de Pago -->
+    <div class="mb-8">
+        <h2 class="text-2xl font-semibold mb-4">Neto por Tipo de Pago</h2>
+        <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+            <ul>
+                {% for tipo_pago, neto in neto_por_pago.items() %}
+                <li class="mb-2">
+                    <span class="font-medium">{{ tipo_pago }}:</span> ${{ neto | round(2) }}
+                    <span class="text-sm text-gray-400">
+                        ({{ total_combinado_por_pago[tipo_pago] | round(2) }} - {{ total_egresos_por_pago.get(tipo_pago, 0) | round(2) }})
+                    </span>
+                </li>
+                {% else %}
+                <li>No hay transacciones registradas en este período.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <!-- Gráficos -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Gráfico de ventas mensuales -->
+        <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+            <h2 class="text-2xl font-semibold mb-4">Ventas Mensuales</h2>
+            <canvas id="ventasMensualesChart"></canvas>
+        </div>
+
+        <!-- Gráfico de ventas semanales -->
+        <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+            <h2 class="text-2xl font-semibold mb-4">Ventas Semanales (Últimas 4 semanas)</h2>
+            <canvas id="ventasSemanalesChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Botón para volver al inicio -->
+    <div class="mt-8 text-center">
+        <a href="{{ url_for('index') }}" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition duration-300">Volver al Inicio</a>
+    </div>
+</div>
+
+<!-- Scripts para Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Datos para el gráfico de ventas mensuales
+    const ventasMensualesData = {
+        labels: {{ ventas_mensuales | map(attribute='mes') | list | tojson | safe }},
+        datasets: [{
+            label: 'Ventas Mensuales',
+            data: {{ ventas_mensuales | map(attribute='total_ventas') | list | tojson | safe }},
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            borderColor: 'rgba(75, 192, 192, 1)',
+            borderWidth: 1
+        }]
+    };
+
+    // Configuración del gráfico de ventas mensuales
+    const ventasMensualesConfig = {
+        type: 'bar',
+        data: ventasMensualesData,
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    };
+
+    // Renderizar el gráfico de ventas mensuales
+    const ventasMensualesChart = new Chart(
+        document.getElementById('ventasMensualesChart'),
+        ventasMensualesConfig
+    );
+
+    // Datos para el gráfico de ventas semanales
+    const ventasSemanalesData = {
+        labels: {{ ventas_semanales | map(attribute='semana') | list | tojson | safe }},
+        datasets: [{
+            label: 'Ventas Semanales',
+            data: {{ ventas_semanales | map(attribute='total_ventas') | list | tojson | safe }},
+            backgroundColor: 'rgba(153, 102, 255, 0.2)',
+            borderColor: 'rgba(153, 102, 255, 1)',
+            borderWidth: 1
+        }]
+    };
+
+    // Configuración del gráfico de ventas semanales
+    const ventasSemanalesConfig = {
+        type: 'bar',
+        data: ventasSemanalesData,
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    };
+
+    // Renderizar el gráfico de ventas semanales
+    const ventasSemanalesChart = new Chart(
+        document.getElementById('ventasSemanalesChart'),
+        ventasSemanalesConfig
+    );
+</script>
+{% endblock %}

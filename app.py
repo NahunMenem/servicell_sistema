@@ -214,7 +214,7 @@ def registrar_venta():
             tipo_pago = request.form['tipo_pago']
             dni_cliente = request.form['dni_cliente']
             argentina_tz = pytz.timezone('America/Argentina/Buenos_Aires')
-            fecha_actual = datetime.now(argentina_tz).strftime('%d-%m-%Y %H:%M:%S')
+            fecha_actual = datetime.now(argentina_tz).strftime('%Y-%m-%d %H:%M:%S')
 
             # Registrar cada producto del carrito
             for item in session['carrito']:
@@ -327,38 +327,74 @@ def ultimas_ventas():
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    # Obtener la fecha actual
+    # Obtener la fecha actual en la zona horaria de Argentina
     argentina_tz = pytz.timezone('America/Argentina/Buenos_Aires')
-    fecha_actual = datetime.now(argentina_tz).strftime('%d-%m-%Y %H:%M:%S')
+    fecha_actual = datetime.now(argentina_tz).strftime('%Y-%m-%d')  # Solo la fecha, sin la hora
 
-    # Consultar las últimas 10 ventas del día
+    # Consultar todas las ventas del día
     cursor.execute('''
-    SELECT v.id, p.nombre, v.cantidad, p.precio, v.fecha
-    FROM ventas v
-    JOIN productos p ON v.producto_id = p.id
-    WHERE DATE(v.fecha) = ?
-    ORDER BY v.fecha DESC
-    LIMIT 10
+        SELECT 
+            v.id AS venta_id,
+            p.nombre AS nombre_producto,
+            v.cantidad,
+            p.precio AS precio_unitario,
+            (v.cantidad * p.precio) AS total,
+            v.fecha,
+            v.tipo_pago
+        FROM ventas v
+        JOIN productos p ON v.producto_id = p.id
+        WHERE DATE(v.fecha) = ?
+        ORDER BY v.fecha DESC
     ''', (fecha_actual,))
     ventas = cursor.fetchall()
 
-    # Consultar las últimas 10 reparaciones del día
+    # Consultar todas las reparaciones del día
     cursor.execute('''
-    SELECT id, nombre_servicio AS nombre, 1 AS cantidad, precio, fecha
-    FROM reparaciones
-    WHERE DATE(fecha) = ?
-    ORDER BY fecha DESC
-    LIMIT 10
+        SELECT 
+            id AS reparacion_id,
+            nombre_servicio AS nombre_servicio,
+            cantidad,
+            precio AS precio_unitario,
+            (cantidad * precio) AS total,
+            fecha,
+            tipo_pago
+        FROM reparaciones
+        WHERE DATE(fecha) = ?
+        ORDER BY fecha DESC
     ''', (fecha_actual,))
     reparaciones = cursor.fetchall()
 
-    # Combinar ventas y reparaciones
-    transacciones = ventas + reparaciones
-    # Ordenar por fecha (de más reciente a más antigua)
-    transacciones.sort(key=lambda x: x['fecha'], reverse=True)
+    # Calcular el total por tipo de pago para ventas
+    total_ventas_por_pago = {}
+    for venta in ventas:
+        tipo_pago = venta['tipo_pago']
+        total = venta['total']
+        if tipo_pago in total_ventas_por_pago:
+            total_ventas_por_pago[tipo_pago] += total
+        else:
+            total_ventas_por_pago[tipo_pago] = total
+
+    # Calcular el total por tipo de pago para reparaciones
+    total_reparaciones_por_pago = {}
+    for reparacion in reparaciones:
+        tipo_pago = reparacion['tipo_pago']
+        total = reparacion['total']
+        if tipo_pago in total_reparaciones_por_pago:
+            total_reparaciones_por_pago[tipo_pago] += total
+        else:
+            total_reparaciones_por_pago[tipo_pago] = total
 
     conn.close()
-    return render_template('ultimas_ventas.html', transacciones=transacciones)
+
+    # Pasar los datos a la plantilla
+    return render_template(
+        'ultimas_ventas.html',
+        ventas=ventas,
+        reparaciones=reparaciones,
+        fecha_actual=fecha_actual,
+        total_ventas_por_pago=total_ventas_por_pago,
+        total_reparaciones_por_pago=total_reparaciones_por_pago
+    )
 
 # Ruta para egresos----------------------------------------------------
 @app.route('/egresos', methods=['GET', 'POST'])
@@ -535,69 +571,278 @@ def caja():
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    # Obtener la fecha de inicio y fin de la semana actual
-    hoy = datetime.now()
-    inicio_semana = (hoy - timedelta(days=hoy.weekday())).strftime('%Y-%m-%d')
-    fin_semana = (hoy + timedelta(days=(6 - hoy.weekday()))).strftime('%Y-%m-%d')
+    # Obtener la fecha actual en la zona horaria de Argentina
+    argentina_tz = pytz.timezone('America/Argentina/Buenos_Aires')
+    fecha_actual = datetime.now(argentina_tz).strftime('%Y-%m-%d')  # Solo la fecha, sin la hora
 
-    # Obtener total de ventas por tipo de pago (semana actual)
+    # Consultar todas las ventas del día
     cursor.execute('''
-        SELECT tipo_pago, COALESCE(SUM(
-            CASE 
-                WHEN producto_id IS NOT NULL THEN cantidad * (SELECT precio FROM productos WHERE id = ventas.producto_id)
-                ELSE total
-            END
-        ), 0) AS total_ventas FROM ventas
-        WHERE DATE(fecha) BETWEEN ? AND ? GROUP BY tipo_pago
-        UNION ALL
-        SELECT tipo_pago, COALESCE(SUM(precio), 0) AS total_ventas FROM reparaciones
-        WHERE DATE(fecha) BETWEEN ? AND ? GROUP BY tipo_pago;
-    ''', (inicio_semana, fin_semana, inicio_semana, fin_semana))
-    ventas_por_tipo = cursor.fetchall()
+        SELECT 
+            v.id AS venta_id,
+            p.nombre AS nombre_producto,
+            v.cantidad,
+            p.precio AS precio_unitario,
+            (v.cantidad * p.precio) AS total,
+            v.fecha,
+            v.tipo_pago
+        FROM ventas v
+        JOIN productos p ON v.producto_id = p.id
+        WHERE DATE(v.fecha) = ?
+        ORDER BY v.fecha DESC
+    ''', (fecha_actual,))
+    ventas = cursor.fetchall()
 
-    # Obtener total de egresos por tipo de pago (semana actual)
+    # Consultar todas las reparaciones del día
     cursor.execute('''
-        SELECT tipo_pago, COALESCE(SUM(monto), 0) as total_egresos FROM egresos
-        WHERE DATE(fecha) BETWEEN ? AND ? GROUP BY tipo_pago
-    ''', (inicio_semana, fin_semana))
-    egresos_por_tipo = cursor.fetchall()
+        SELECT 
+            id AS reparacion_id,
+            nombre_servicio AS nombre_servicio,
+            cantidad,
+            precio AS precio_unitario,
+            (cantidad * precio) AS total,
+            fecha,
+            tipo_pago
+        FROM reparaciones
+        WHERE DATE(fecha) = ?
+        ORDER BY fecha DESC
+    ''', (fecha_actual,))
+    reparaciones = cursor.fetchall()
 
-    # Convertir los resultados en diccionarios
-    ventas = {row[0]: row[1] for row in ventas_por_tipo}
-    egresos = {row[0]: row[1] for row in egresos_por_tipo}
+    # Consultar todos los egresos del día
+    cursor.execute('''
+        SELECT 
+            id AS egreso_id,
+            descripcion,
+            monto,
+            tipo_pago,
+            fecha
+        FROM egresos
+        WHERE DATE(fecha) = ?
+        ORDER BY fecha DESC
+    ''', (fecha_actual,))
+    egresos = cursor.fetchall()
 
-    # Definir los tipos de pago que manejamos
-    tipos_pago = ['efectivo', 'transferencia', 'debito', 'credito']
+    # Calcular el total por tipo de pago para ventas
+    total_ventas_por_pago = {}
+    for venta in ventas:
+        tipo_pago = venta['tipo_pago']
+        total = venta['total']
+        if tipo_pago in total_ventas_por_pago:
+            total_ventas_por_pago[tipo_pago] += total
+        else:
+            total_ventas_por_pago[tipo_pago] = total
 
-    # Asegurar que todos los tipos de pago tienen un valor (por si no hay datos en la BD)
-    ventas = {tipo: ventas.get(tipo, 0) for tipo in tipos_pago}
-    egresos = {tipo: egresos.get(tipo, 0) for tipo in tipos_pago}
+    # Calcular el total por tipo de pago para reparaciones
+    total_reparaciones_por_pago = {}
+    for reparacion in reparaciones:
+        tipo_pago = reparacion['tipo_pago']
+        total = reparacion['total']
+        if tipo_pago in total_reparaciones_por_pago:
+            total_reparaciones_por_pago[tipo_pago] += total
+        else:
+            total_reparaciones_por_pago[tipo_pago] = total
 
-    # Calcular valores
-    total_general = sum(ventas.values()) - sum(egresos.values())
-    netos = {tipo: ventas[tipo] - egresos[tipo] for tipo in tipos_pago}
+    # Calcular el total combinado por tipo de pago (ventas + reparaciones)
+    total_combinado_por_pago = {}
+    for tipo_pago, total in total_ventas_por_pago.items():
+        total_combinado_por_pago[tipo_pago] = total_combinado_por_pago.get(tipo_pago, 0) + total
+    for tipo_pago, total in total_reparaciones_por_pago.items():
+        total_combinado_por_pago[tipo_pago] = total_combinado_por_pago.get(tipo_pago, 0) + total
 
-    # Depuración: Verificar los datos
-    print("Ventas:", ventas)
-    print("Egresos:", egresos)
-    print("Total general:", total_general)
-    print("Inicio de semana:", inicio_semana)
-    print("Fin de semana:", fin_semana)
-    print("Tipos de pago:", tipos_pago)
-    print("Netos:", netos)
+    # Calcular el total de egresos por tipo de pago
+    total_egresos_por_pago = {}
+    for egreso in egresos:
+        tipo_pago = egreso['tipo_pago']
+        monto = egreso['monto']
+        if tipo_pago in total_egresos_por_pago:
+            total_egresos_por_pago[tipo_pago] += monto
+        else:
+            total_egresos_por_pago[tipo_pago] = monto
+
+    # Calcular el neto por tipo de pago (total combinado - egresos correspondientes)
+    neto_por_pago = {}
+    for tipo_pago, total in total_combinado_por_pago.items():
+        # Obtener los egresos para este tipo de pago (si no hay, usar 0)
+        egresos_tipo_pago = total_egresos_por_pago.get(tipo_pago, 0)
+        # Calcular el neto
+        neto_por_pago[tipo_pago] = total - egresos_tipo_pago
 
     conn.close()
 
-    return render_template('caja.html', 
-                           ventas=ventas,
-                           egresos=egresos,
-                           total_general=total_general,
-                           inicio_semana=inicio_semana,
-                           fin_semana=fin_semana,
-                           tipos_pago=tipos_pago,
-                           netos=netos)
+    # Pasar los datos a la plantilla
+    return render_template(
+        'caja.html',
+        fecha_actual=fecha_actual,
+        total_ventas_por_pago=total_ventas_por_pago,
+        total_reparaciones_por_pago=total_reparaciones_por_pago,
+        total_combinado_por_pago=total_combinado_por_pago,
+        total_egresos_por_pago=total_egresos_por_pago,
+        neto_por_pago=neto_por_pago
+    )
 
 
+@app.route('/caja_semanal')
+def caja_semanal():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # Obtener la fecha actual en la zona horaria de Argentina
+    argentina_tz = pytz.timezone('America/Argentina/Buenos_Aires')
+    hoy = datetime.now(argentina_tz)
+
+    # Obtener parámetros de la URL (semana o mes)
+    periodo = request.args.get('periodo', 'semana_actual')  # Por defecto: semana actual
+    if periodo == 'semana_pasada':
+        inicio_semana = hoy - timedelta(days=hoy.weekday() + 7)  # Lunes de la semana pasada
+        fin_semana = inicio_semana + timedelta(days=6)  # Domingo de la semana pasada
+    elif periodo == 'mes_actual':
+        inicio_semana = hoy.replace(day=1)  # Primer día del mes actual
+        fin_semana = (inicio_semana + timedelta(days=32)).replace(day=1) - timedelta(days=1)  # Último día del mes actual
+    elif periodo == 'mes_anterior':
+        primer_dia_mes_actual = hoy.replace(day=1)
+        inicio_semana = (primer_dia_mes_actual - timedelta(days=1)).replace(day=1)  # Primer día del mes anterior
+        fin_semana = primer_dia_mes_actual - timedelta(days=1)  # Último día del mes anterior
+    else:  # Semana actual (por defecto)
+        inicio_semana = hoy - timedelta(days=hoy.weekday())  # Lunes de la semana actual
+        fin_semana = inicio_semana + timedelta(days=6)  # Domingo de la semana actual
+
+    # Formatear fechas para la consulta SQL
+    inicio_semana_str = inicio_semana.strftime('%Y-%m-%d')
+    fin_semana_str = fin_semana.strftime('%Y-%m-%d')
+
+    # Consultar todas las ventas del período seleccionado
+    cursor.execute('''
+        SELECT 
+            v.id AS venta_id,
+            p.nombre AS nombre_producto,
+            v.cantidad,
+            p.precio AS precio_unitario,
+            (v.cantidad * p.precio) AS total,
+            v.fecha,
+            v.tipo_pago
+        FROM ventas v
+        JOIN productos p ON v.producto_id = p.id
+        WHERE DATE(v.fecha) BETWEEN ? AND ?
+        ORDER BY v.fecha DESC
+    ''', (inicio_semana_str, fin_semana_str))
+    ventas = cursor.fetchall()
+
+    # Consultar todas las reparaciones del período seleccionado
+    cursor.execute('''
+        SELECT 
+            id AS reparacion_id,
+            nombre_servicio AS nombre_servicio,
+            cantidad,
+            precio AS precio_unitario,
+            (cantidad * precio) AS total,
+            fecha,
+            tipo_pago
+        FROM reparaciones
+        WHERE DATE(fecha) BETWEEN ? AND ?
+        ORDER BY fecha DESC
+    ''', (inicio_semana_str, fin_semana_str))
+    reparaciones = cursor.fetchall()
+
+    # Consultar todos los egresos del período seleccionado
+    cursor.execute('''
+        SELECT 
+            id AS egreso_id,
+            descripcion,
+            monto,
+            tipo_pago,
+            fecha
+        FROM egresos
+        WHERE DATE(fecha) BETWEEN ? AND ?
+        ORDER BY fecha DESC
+    ''', (inicio_semana_str, fin_semana_str))
+    egresos = cursor.fetchall()
+
+    # Calcular el total por tipo de pago para ventas
+    total_ventas_por_pago = {}
+    for venta in ventas:
+        tipo_pago = venta['tipo_pago']
+        total = venta['total']
+        if tipo_pago in total_ventas_por_pago:
+            total_ventas_por_pago[tipo_pago] += total
+        else:
+            total_ventas_por_pago[tipo_pago] = total
+
+    # Calcular el total por tipo de pago para reparaciones
+    total_reparaciones_por_pago = {}
+    for reparacion in reparaciones:
+        tipo_pago = reparacion['tipo_pago']
+        total = reparacion['total']
+        if tipo_pago in total_reparaciones_por_pago:
+            total_reparaciones_por_pago[tipo_pago] += total
+        else:
+            total_reparaciones_por_pago[tipo_pago] = total
+
+    # Calcular el total combinado por tipo de pago (ventas + reparaciones)
+    total_combinado_por_pago = {}
+    for tipo_pago, total in total_ventas_por_pago.items():
+        total_combinado_por_pago[tipo_pago] = total_combinado_por_pago.get(tipo_pago, 0) + total
+    for tipo_pago, total in total_reparaciones_por_pago.items():
+        total_combinado_por_pago[tipo_pago] = total_combinado_por_pago.get(tipo_pago, 0) + total
+
+    # Calcular el total de egresos por tipo de pago
+    total_egresos_por_pago = {}
+    for egreso in egresos:
+        tipo_pago = egreso['tipo_pago']
+        monto = egreso['monto']
+        if tipo_pago in total_egresos_por_pago:
+            total_egresos_por_pago[tipo_pago] += monto
+        else:
+            total_egresos_por_pago[tipo_pago] = monto
+
+    # Calcular el neto por tipo de pago (total combinado - egresos correspondientes)
+    neto_por_pago = {}
+    for tipo_pago, total in total_combinado_por_pago.items():
+        # Obtener los egresos para este tipo de pago (si no hay, usar 0)
+        egresos_tipo_pago = total_egresos_por_pago.get(tipo_pago, 0)
+        # Calcular el neto
+        neto_por_pago[tipo_pago] = total - egresos_tipo_pago
+
+    # Obtener ventas mensuales para el gráfico
+    cursor.execute('''
+        SELECT 
+            strftime('%Y-%m', fecha) AS mes,
+            SUM(total) AS total_ventas
+        FROM ventas
+        WHERE strftime('%Y', fecha) = strftime('%Y', 'now')
+        GROUP BY mes
+        ORDER BY mes
+    ''')
+    ventas_mensuales = cursor.fetchall()
+
+    # Obtener ventas semanales para el gráfico (últimas 4 semanas)
+    cursor.execute('''
+        SELECT 
+            strftime('%Y-%W', fecha) AS semana,
+            SUM(total) AS total_ventas
+        FROM ventas
+        WHERE fecha >= date('now', '-28 days')
+        GROUP BY semana
+        ORDER BY semana
+        LIMIT 4
+    ''')
+    ventas_semanales = cursor.fetchall()
+
+    conn.close()
+
+    # Pasar los datos a la plantilla
+    return render_template(
+        'caja_semanal.html',
+        inicio_semana=inicio_semana_str,
+        fin_semana=fin_semana_str,
+        total_ventas_por_pago=total_ventas_por_pago,
+        total_reparaciones_por_pago=total_reparaciones_por_pago,
+        total_combinado_por_pago=total_combinado_por_pago,
+        total_egresos_por_pago=total_egresos_por_pago,
+        neto_por_pago=neto_por_pago,
+        periodo_seleccionado=periodo,
+        ventas_mensuales=ventas_mensuales,
+        ventas_semanales=ventas_semanales
+    )
 # Ruta para reparaciones----------------------------------
 @app.route('/reparaciones', methods=['GET', 'POST'])
 def reparaciones():
