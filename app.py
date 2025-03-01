@@ -1,6 +1,7 @@
-from flask import Flask, render_template, request, redirect, url_for, session,flash
+from flask import Flask, render_template, request, redirect, url_for, session,flash,jsonify
 import sqlite3
 from datetime import datetime, timedelta
+import pytz
 
 app = Flask(__name__)
 app.secret_key = 'tu_clave_secreta_aqui'  # Necesario para usar sesiones
@@ -211,7 +212,8 @@ def registrar_venta():
             # Obtener el tipo de pago y el DNI del cliente
             tipo_pago = request.form['tipo_pago']
             dni_cliente = request.form['dni_cliente']
-            fecha_actual = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            argentina_tz = pytz.timezone('America/Argentina/Buenos_Aires')
+            fecha_actual = datetime.now(argentina_tz).strftime('%d-%m-%Y %H:%M:%S')
 
             # Registrar cada producto del carrito
             for item in session['carrito']:
@@ -325,7 +327,8 @@ def ultimas_ventas():
     cursor = conn.cursor()
 
     # Obtener la fecha actual
-    fecha_actual = datetime.now().strftime('%Y-%m-%d')
+    argentina_tz = pytz.timezone('America/Argentina/Buenos_Aires')
+    fecha_actual = datetime.now(argentina_tz).strftime('%d-%m-%Y %H:%M:%S')
 
     # Consultar las últimas 10 ventas del día
     cursor.execute('''
@@ -538,60 +541,61 @@ def caja():
 
     # Obtener total de ventas por tipo de pago (semana actual)
     cursor.execute('''
-        SELECT
-            tipo_pago,
-            SUM(total_ventas) AS total_ventas
-        FROM (
-            SELECT
-                tipo_pago,
-                total AS total_ventas
-            FROM ventas
-            WHERE DATE(fecha) BETWEEN ? AND ?
-            UNION ALL
-            SELECT
-                tipo_pago,
-                precio AS total_ventas
-            FROM reparaciones
-            WHERE DATE(fecha) BETWEEN ? AND ?
-        ) AS ventas_reparaciones
-        GROUP BY tipo_pago;
+        SELECT tipo_pago, COALESCE(SUM(
+            CASE 
+                WHEN producto_id IS NOT NULL THEN cantidad * (SELECT precio FROM productos WHERE id = ventas.producto_id)
+                ELSE total
+            END
+        ), 0) AS total_ventas FROM ventas
+        WHERE DATE(fecha) BETWEEN ? AND ? GROUP BY tipo_pago
+        UNION ALL
+        SELECT tipo_pago, COALESCE(SUM(precio), 0) AS total_ventas FROM reparaciones
+        WHERE DATE(fecha) BETWEEN ? AND ? GROUP BY tipo_pago;
     ''', (inicio_semana, fin_semana, inicio_semana, fin_semana))
     ventas_por_tipo = cursor.fetchall()
 
     # Obtener total de egresos por tipo de pago (semana actual)
     cursor.execute('''
-        SELECT tipo_pago, SUM(monto) as total_egresos
-        FROM egresos
-        WHERE DATE(fecha) BETWEEN ? AND ?
-        GROUP BY tipo_pago
+        SELECT tipo_pago, COALESCE(SUM(monto), 0) as total_egresos FROM egresos
+        WHERE DATE(fecha) BETWEEN ? AND ? GROUP BY tipo_pago
     ''', (inicio_semana, fin_semana))
     egresos_por_tipo = cursor.fetchall()
 
-    # Convertir los resultados en diccionarios para facilitar el acceso
-    ventas = {row['tipo_pago']: row['total_ventas'] for row in ventas_por_tipo}
-    egresos = {row['tipo_pago']: row['total_egresos'] for row in egresos_por_tipo}
+    # Convertir los resultados en diccionarios
+    ventas = {row[0]: row[1] for row in ventas_por_tipo}
+    egresos = {row[0]: row[1] for row in egresos_por_tipo}
 
     # Definir los tipos de pago que manejamos
     tipos_pago = ['efectivo', 'transferencia', 'debito', 'credito']
 
-    # Preparar datos para el gráfico
-    ventas_values = [ventas.get(tipo, 0) for tipo in tipos_pago]
-    egresos_values = [egresos.get(tipo, 0) for tipo in tipos_pago]
-    netos_values = [ventas.get(tipo, 0) - egresos.get(tipo, 0) for tipo in tipos_pago]
+    # Asegurar que todos los tipos de pago tienen un valor (por si no hay datos en la BD)
+    ventas = {tipo: ventas.get(tipo, 0) for tipo in tipos_pago}
+    egresos = {tipo: egresos.get(tipo, 0) for tipo in tipos_pago}
+
+    # Calcular valores
+    total_general = sum(ventas.values()) - sum(egresos.values())
+    netos = {tipo: ventas[tipo] - egresos[tipo] for tipo in tipos_pago}
+
+    # Depuración: Verificar los datos
+    print("Ventas:", ventas)
+    print("Egresos:", egresos)
+    print("Total general:", total_general)
+    print("Inicio de semana:", inicio_semana)
+    print("Fin de semana:", fin_semana)
+    print("Tipos de pago:", tipos_pago)
+    print("Netos:", netos)
 
     conn.close()
 
     return render_template('caja.html', 
-                           totales={tipo: ventas.get(tipo, 0) - egresos.get(tipo, 0) for tipo in tipos_pago},
                            ventas=ventas,
                            egresos=egresos,
-                           total_general=sum(ventas.values()) - sum(egresos.values()),
+                           total_general=total_general,
                            inicio_semana=inicio_semana,
                            fin_semana=fin_semana,
                            tipos_pago=tipos_pago,
-                           ventas_values=ventas_values,
-                           egresos_values=egresos_values,
-                           netos_values=netos_values)
+                           netos=netos)
+
 
 # Ruta para reparaciones----------------------------------
 @app.route('/reparaciones', methods=['GET', 'POST'])

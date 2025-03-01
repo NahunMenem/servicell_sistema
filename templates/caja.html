@@ -11,6 +11,14 @@
     </div>
 
     <div class="bg-gray-800 p-6 rounded-lg shadow-lg mb-8">
+        <h2 class="text-2xl font-semibold mb-4">Depuración</h2>
+        <p><strong>Ventas:</strong> {{ ventas }}</p>
+        <p><strong>Egresos:</strong> {{ egresos }}</p>
+        <p><strong>Total general:</strong> {{ total_general }}</p>
+        <p><strong>Tipos de pago:</strong> {{ tipos_pago }}</p>
+    </div>
+
+    <div class="bg-gray-800 p-6 rounded-lg shadow-lg mb-8">
         <h2 class="text-2xl font-semibold mb-4">Totales por Método de Pago</h2>
         <div class="overflow-x-auto">
             <table class="min-w-full bg-gray-700 rounded-lg">
@@ -26,16 +34,16 @@
                     {% for tipo in tipos_pago %}
                     <tr class="border-b border-gray-600 hover:bg-gray-650 transition duration-200">
                         <td class="px-4 py-2">{{ tipo | capitalize }}</td>
-                        <td class="px-4 py-2">${{ ventas.get(tipo, 0) }}</td>
-                        <td class="px-4 py-2">${{ egresos.get(tipo, 0) }}</td>
-                        <td class="px-4 py-2">${{ ventas.get(tipo, 0) - egresos.get(tipo, 0) }}</td>
+                        <td class="px-4 py-2">${{ "%.2f" | format(ventas.get(tipo, 0)) }}</td>
+                        <td class="px-4 py-2">${{ "%.2f" | format(egresos.get(tipo, 0)) }}</td>
+                        <td class="px-4 py-2">${{ "%.2f" | format(ventas.get(tipo, 0) - egresos.get(tipo, 0)) }}</td>
                     </tr>
                     {% endfor %}
                     <tr class="bg-gray-600">
                         <td class="px-4 py-2"><strong>Total General</strong></td>
                         <td></td>
                         <td></td>
-                        <td class="px-4 py-2"><strong>${{ total_general }}</strong></td>
+                        <td class="px-4 py-2"><strong>${{ "%.2f" | format(total_general) }}</strong></td>
                     </tr>
                 </tbody>
             </table>

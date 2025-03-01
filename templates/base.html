@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema - Servicell</title>
+    <!-- Favicon estándar para navegadores -->
+    <link rel="icon" type="image/x-icon" href="/static/images/icono.ico">
+    <!-- Icono para dispositivos iOS (iPhone, iPad) -->
+    <link rel="apple-touch-icon" href="/static/images/icono.png">
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
@@ -49,20 +53,15 @@
         /* Estilos para el botón de toggle en móviles */
         #sidebarToggle {
             display: none; /* Oculto por defecto */
-            position: fixed;
-            top: 10px;
-            left: 10px;
-            z-index: 1000;
-            background-color: #1e1e1e;
-            border: 1px solid #333333;
-            color: #ffffff;
-            padding: 10px;
-            cursor: pointer;
         }
 
         @media (max-width: 768px) {
             #sidebarToggle {
-                display: block; /* Mostrar solo en móviles */
+                display: block; /* Mostrar en móviles */
+                position: fixed;
+                top: 10px;
+                left: 10px;
+                z-index: 1000;
             }
 
             #sidebar-wrapper {
@@ -79,19 +78,19 @@
                 left: 0; /* Mostrar el sidebar */
             }
 
-            .container-fluid {
-                margin-left: 0 !important; /* Ajustar el contenido principal */
+            #page-content-wrapper {
+                margin-left: 0; /* Ajustar el contenido cuando el sidebar está oculto */
             }
         }
     </style>
 </head>
 <body>
-    <!-- Botón para mostrar/ocultar el sidebar en móviles -->
-    <button id="sidebarToggle">
-        <i class="fas fa-bars"></i> Menú
-    </button>
-
     <div class="d-flex" id="wrapper">
+        <!-- Botón para mostrar/ocultar el sidebar en móviles -->
+        <button id="sidebarToggle" class="btn btn-dark">
+            <i class="fas fa-bars"></i>
+        </button>
+
         <!-- Sidebar -->
         <div class="bg-light border-right" id="sidebar-wrapper">
             <div class="sidebar-heading">
@@ -136,7 +135,7 @@
         <!-- /#sidebar-wrapper -->
 
         <!-- Page Content -->
-        <div class="container-fluid">
+        <div id="page-content-wrapper" class="container-fluid">
             {% block content %}{% endblock %}
         </div>
         <!-- /#page-content-wrapper -->
@@ -144,10 +143,9 @@
     <!-- /#wrapper -->
 
     <script>
-        // JavaScript para manejar el sidebar en móviles
+        // Script para mostrar/ocultar el sidebar en móviles
         document.getElementById('sidebarToggle').addEventListener('click', function() {
-            const sidebar = document.getElementById('sidebar-wrapper');
-            sidebar.classList.toggle('active');
+            document.getElementById('sidebar-wrapper').classList.toggle('active');
         });
     </script>
 </body>
