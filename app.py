@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session,flash,jsonify
 import sqlite3
 from datetime import datetime, timedelta
-
+import pytz
 app = Flask(__name__)
 app.secret_key = 'tu_clave_secreta_aqui'  # Necesario para usar sesiones
 # Función para conectar a la base de datos
@@ -211,7 +211,8 @@ def registrar_venta():
             # Obtener el tipo de pago y el DNI del cliente
             tipo_pago = request.form['tipo_pago']
             dni_cliente = request.form['dni_cliente']
-            fecha_actual = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            argentina_tz = pytz.timezone('America/Argentina/Buenos_Aires')
+            fecha_actual = datetime.now(argentina_tz).strftime('%d-%m-%Y %H:%M:%S')
 
             # Registrar cada producto del carrito
             for item in session['carrito']:
@@ -230,7 +231,7 @@ def registrar_venta():
                         cursor.execute('''
                         INSERT INTO ventas (producto_id, cantidad, fecha, nombre_manual, precio_manual, tipo_pago, dni_cliente)
                         VALUES (?, ?, ?, ?, ?, ?, ?)
-                        ''', (producto_id, cantidad, fecha_actual, None, None, tipo_pago, dni_cliente))
+                        ''', (producto_id, cantidad, tual, None, None, tipo_pago, dni_cliente))
 
                         # Actualizar el stock
                         cursor.execute('UPDATE productos SET stock = stock - ? WHERE id = ?', (cantidad, producto_id))
