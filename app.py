@@ -212,7 +212,7 @@ def registrar_venta():
             tipo_pago = request.form['tipo_pago']
             dni_cliente = request.form['dni_cliente']
             argentina_tz = pytz.timezone('America/Argentina/Buenos_Aires')
-            fecha_actual = datetime.now(argentina_tz).strftime('%d-%m-%Y %H:%M:%S')
+            fecha_actual = datetime.now(argentina_tz).strftime('%Y-%m-%d %H:%M:%S')
 
             # Registrar cada producto del carrito
             for item in session['carrito']:
@@ -243,7 +243,7 @@ def registrar_venta():
                     cursor.execute('''
                     INSERT INTO reparaciones (nombre_servicio, precio, cantidad, tipo_pago, dni_cliente, fecha)
                     VALUES (?, ?, ?, ?, ?, ?)
-                    ''', (nombre, precio, cantidad, tipo_pago, dni_cliente, fecha_actual))
+                    ''', (nombre, precio, cantidad, tipo_pago, dni_cliente, tual))
 
             conn.commit()
             conn.close()
@@ -326,7 +326,7 @@ def ultimas_ventas():
     cursor = conn.cursor()
 
     # Obtener la fecha actual
-    fecha_actual = datetime.now().strftime('%Y-%m-%d')
+    tual = datetime.now().strftime('%Y-%m-%d')
 
     # Consultar las últimas 10 ventas del día
     cursor.execute('''
@@ -336,7 +336,7 @@ def ultimas_ventas():
     WHERE DATE(v.fecha) = ?
     ORDER BY v.fecha DESC
     LIMIT 10
-    ''', (fecha_actual,))
+    ''', (tual,))
     ventas = cursor.fetchall()
 
     # Consultar las últimas 10 reparaciones del día
@@ -346,7 +346,7 @@ def ultimas_ventas():
     WHERE DATE(fecha) = ?
     ORDER BY fecha DESC
     LIMIT 10
-    ''', (fecha_actual,))
+    ''', (tual,))
     reparaciones = cursor.fetchall()
 
     # Combinar ventas y reparaciones
