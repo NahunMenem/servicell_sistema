@@ -28,6 +28,7 @@ def crear_tabla_usuarios():
 
 # Llamar a la función para crear la tabla de usuarios al iniciar la aplicación
 # Crear tabla de usuarios si no existe
+#prueba
 def crear_tabla_usuarios():
     conn = get_db_connection()
     cursor = conn.cursor()
