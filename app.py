@@ -55,6 +55,23 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+# Ruta para exportar la base de datos
+@app.route('/exportar_db')
+def exportar_db():
+    # Ruta al archivo de la base de datos
+    db_path = 'negocio.db'  # Ajusta esta ruta según la ubicación de tu base de datos
+
+    # Verificar si el archivo existe
+    if not os.path.exists(db_path):
+        return "La base de datos no existe.", 404
+
+    # Enviar el archivo como una descarga
+    return send_file(
+        db_path,
+        as_attachment=True,
+        download_name='negocio_export.db',  # Nombre del archivo descargado
+        mimetype='application/octet-stream'
+    )
 
 
 # Función para conectar a la base de datos
